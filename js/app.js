@@ -176,6 +176,19 @@ function reiniciarObjeto() {
 function eliminarCita(id) {
 	administrarCitas.eliminarCita(id);
 
+	const transaction = BD.transaction(['citas'], 'readwrite');
+	const objectStore = transaction.objectStore('citas');
+
+	objectStore.delete(id);
+
+	transaction.oncomplete = () => {
+		ui.imprimirAlerta('Se elimino correctamente')
+	};
+
+	transaction.onerror = () => {
+		ui.imprimirAlerta('Error al elimianr', 'error')
+	};
+
 	ui.imprimirCitas()
 }
 
