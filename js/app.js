@@ -59,6 +59,7 @@ class Citas {
 	agregarCita(cita) {
 		this.citas = [...this.citas, cita];
 	}
+
 	editarCita(citaActualizada) {
 		this.citas = this.citas.map(cita => cita.id === citaActualizada.id ? citaActualizada : cita)
 	}
@@ -132,11 +133,8 @@ function nuevaCita(e) {
 		// Estamos editando
 		administrarCitas.editarCita({ ...citaObj });
 
-		ui.imprimirAlerta('Guardado Correctamente');
-
-		formulario.querySelector('button[type="submit"]').textContent = 'Crear Cita';
-
-		editando = false;
+		// Editamos la cita en indexDB
+		editarCitaDB({ ...citaObj });
 
 	} else {
 		// Nuevo Registrando
@@ -316,7 +314,7 @@ const leerCitasIndexDB = () => {
 			bntEditar.textContent = 'Editar';
 			bntEditar.classList.add('btn', 'btn-info');
 			bntEditar.onclick = () => {
-				editarCita(cita);
+				cargarEdicion(cursor.value)
 			}
 
 
@@ -327,5 +325,24 @@ const leerCitasIndexDB = () => {
 			// Ve l siguiente elemento
 			cursor.continue();
 		};
+	}
+};
+
+const editarCitaDB = (cita) => {
+	const transaction = BD.transaction(['citas'], 'readwrite');
+	const objectStore = transaction.objectStore('citas');
+
+	objectStore.put(cita);
+
+	transaction.oncomplete = () => {
+		ui.imprimirAlerta('Guardado Correctamente');
+
+		formulario.querySelector('button[type="submit"]').textContent = 'Crear Cita';
+
+		editando = false;
+	};
+
+	transaction.onerror = () => {
+		ui.imprimirAlerta('Error al editar la cita', 'error')
 	}
 };
