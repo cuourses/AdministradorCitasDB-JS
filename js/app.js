@@ -209,8 +209,9 @@ function nuevaCita(e) {
 		// Añade la nueva cita
 		administrarCitas.agregarCita({ ...citaObj });
 
-		// Mostrar mensaje de que todo esta bien...
-		ui.imprimirAlerta('Se agregó correctamente')
+		// Registramos la cita en INDEXDB
+		registrarCitaDB({ ...citaObj });
+
 	}
 
 
@@ -275,7 +276,7 @@ const crearBaseDatos = () => {
 
 	baseDatos.onupgradeneeded = () => {
 		BD = baseDatos.result;
-		const objectStore = BD.createObjectStore(['citas'], {
+		const objectStore = BD.createObjectStore('citas', {
 			keyPath: 'id',
 			autoIncrement: true
 		});
@@ -297,5 +298,25 @@ const crearBaseDatos = () => {
 	baseDatos.onsuccess = () => {
 		console.log('BD creada correctamente');
 		BD = baseDatos.result;
+	};
+};
+
+
+
+const registrarCitaDB = (cita) => {
+	const transaction = BD.transaction(['citas'], 'readwrite');
+	const objectStore = transaction.objectStore('citas');
+
+	objectStore.add(cita);
+
+	transaction.onerror = () => {
+		console.log('Error al registrar la cita');
+	};
+
+	transaction.oncopmplete = () => {
+		console.log('Cita registrada');
+
+		// Mostrar mensaje de que todo esta bien...
+		ui.imprimirAlerta('Se agregó correctamente')
 	};
 };
